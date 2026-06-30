@@ -16,10 +16,10 @@ And deployed directly in your Google Cloud Project:
 
 The notebook provides an executable, step-by-step hands-on guide that:
 1. **Resolves Project Metadata:** Programmatically fetches the numeric Project Number and Organization ID from the Google Cloud API.
-2. **Derives Predictable SPIFFE Principal ID:** Demonstrates how Google Cloud Agent Identity principal IDs are deterministic.
-3. **Demonstrates Pre-permissioning:** Creates a secure credential placeholder in Secret Manager and programmatically grants the predicted principal ID access (`roles/secretmanager.secretAccessor`).
-4. **Verifies Active Policies:** Fetches and verifies active IAM policy bindings to ensure zero-downtime, secure-by-default access from the first moment of deployment.
-5. **Creates an Engine Without Agent Code:** Programmatically provisions an Agent Identity on Vertex AI without deploying any agent code, retrieves the resulting identity, and shows that it matches our SPIFFE predictions exactly!
+2. **Creates an "Empty Shell" Agent Engine:** Programmatically provisions a lightweight, identity-only Agent Engine instance on Vertex AI without deploying any agent code to dynamically allocate the platform-assigned SPIFFE-based principal ID.
+3. **Creates a Secret in Google Secret Manager:** Creates a secure credential placeholder in Secret Manager.
+4. **Pre-Permissions the Identity:** Programmatically grants the allocated principal ID access (`roles/secretmanager.secretAccessor`) on the secret beforehand.
+5. **Verifies Active Policies:** Fetches and verifies active IAM policy bindings to ensure zero-downtime, secure-by-default access from the first moment of deployment.
 6. **(Optional) Verifies Live Deployments:** Searches for a live deployed Secret Agent, constructs its identity, and authorizes it.
 
 
@@ -103,10 +103,10 @@ adk deploy agent_engine \
 * **Answer:** No. Google’s Agent Identity is designed to act as a cryptographically attested, SPIFFE-based identity that is intrinsically tied to the lifecycle and resource path of a specific agent. Because it is auto-provisioned by the platform (complete with a short-lived, auto-rotating X.509 certificate), you can't "bring your own" identity to the deployment.
 
 ### Q2: Is it possible to pre-create / pre-permission an identity?
-* **Answer:** **Yes!** You don't have to wait until after deployment to assign permissions. You can create an agent engine instance with the associated identity and retrieve the principal id associated with it. The python sample code demonstrates this by creating an agent instance using the vertexai python sdk, it then retrieves the principal id associated with the agent instance and prints it, at which point you can pre-permission it for whatever resources it might need access to. When deploying the real agent code use the engine id in the deployment command to deploy it to the right agent engine. 
+* **Answer:** **Yes, via an "empty shell" deployment.** You cannot predict the SPIFFE ID entirely offline because the Agent Engine ID is a platform-assigned numeric identifier generated at resource creation. However, you can provision an empty Agent Engine instance (without any agent code) to allocate the identity beforehand. Once the identity is allocated, you can programmatically capture its SPIFFE ID, assign the necessary permissions, and then later deploy your real agent code to that pre-existing engine instance.
 
 ### Q3: Am I just approaching this problem wrong?
-* **Answer:** Your approach is good. Pre-permissioning using the predictable SPIFFE-based principal ID string is a pattern for zero-downtime, secure-by-default enterprise agent setups. There is an argument for retrieving the SPIFFE id string after the first agent deployment instead, since you will have to wait for IAM propagation anyways, but creating the agent engine before code deployment separates the concerns (i.e. security setup vs code deployment).
+* **Answer:** Your approach is good. Pre-permissioning using an empty shell deployment to separate identity provisioning from code deployment is an industry-standard secure-by-default enterprise agent pattern. Create the agent engine beforehand to separate security setup from code deployment.
 
 ---
 
