@@ -92,10 +92,10 @@ To configure and run the local `secret_agent` using ADK:
 * **Answer:** No. Google’s Agent Identity is designed to act as a cryptographically attested, SPIFFE-based identity that is intrinsically tied to the lifecycle and resource path of a specific agent. Because it is auto-provisioned by the platform (complete with a short-lived, auto-rotating X.509 certificate), you can't "bring your own" identity to the deployment.
 
 ### Q2: Is it possible to pre-create / pre-permission an identity?
-* **Answer:** **Yes!** You don't have to wait until after deployment to assign permissions. Because the identity is strictly tied to the deployment path, it is entirely predictable, meaning you can pre-permission it in IAM before the agent ever exists.
+* **Answer:** **Yes!** You don't have to wait until after deployment to assign permissions. You can create an agent engine instance with the associated identity and retrieve the principal id associated with it. The python sample code demonstrates this by creating an agent instance using the vertexai python sdk, it then retrieves the principal id associated with the agent instance and prints it, at which point you can pre-permission it for whatever resources it might need access to. When deploying the real agent code use the engine id in the deployment command to deploy it to the right agent engine. 
 
 ### Q3: Am I just approaching this problem wrong?
-* **Answer:** No, you are approaching it exactly right. Pre-permissioning using the predictable SPIFFE-based principal ID string is the industry-standard best-practice pattern for zero-downtime, secure-by-default enterprise agent setups.
+* **Answer:** Your approach is good. Pre-permissioning using the predictable SPIFFE-based principal ID string is a pattern for zero-downtime, secure-by-default enterprise agent setups. There is an argument for retrieving the SPIFFE id string after the first agent deployment instead, since you will have to wait for IAM propagation anyways, but creating the agent engine before code deployment separates the concerns (i.e. security setup vs code deployment).
 
 ---
 

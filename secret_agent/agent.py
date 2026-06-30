@@ -19,17 +19,44 @@ def get_current_principal() -> str:
     except Exception:
         pass
 
-    # 2. Try google.auth credentials
+    # 2. Try google.auth credentials (service accounts / keys / high-fidelity user ADC)
     try:
         credentials, _ = google.auth.default()
         if hasattr(credentials, "service_account_email") and credentials.service_account_email:
             return f"serviceAccount:{credentials.service_account_email}"
         if hasattr(credentials, "signer_email") and credentials.signer_email:
             return f"serviceAccount:{credentials.signer_email}"
+        
+        # If it is a user/interactive credential, try to retrieve the email using Tokeninfo
+        from google.auth.transport.requests import Request
+        import ssl
+        import json
+        credentials.refresh(Request())
+        if credentials.token:
+            url = f"https://oauth2.googleapis.com/tokeninfo?access_token={credentials.token}"
+            context = ssl._create_unverified_context()
+            req = urllib.request.Request(url)
+            with urllib.request.urlopen(req, context=context, timeout=2) as response:
+                info = json.loads(response.read().decode("utf-8"))
+                email = info.get("email")
+                if email:
+                    return f"user:{email} (Local ADC)"
     except Exception:
         pass
 
-    # 3. Fallback to local environment user
+    # 3. Try to query active gcloud account as a local fallback
+    import subprocess
+    try:
+        gcloud_account = subprocess.check_output(
+            ["gcloud", "config", "get-value", "account"],
+            stderr=subprocess.DEVNULL
+        ).decode("utf-8").strip()
+        if gcloud_account and gcloud_account != "(unset)":
+            return f"user:{gcloud_account} (Local ADC)"
+    except Exception:
+        pass
+
+    # 4. Fallback to OS-level user context
     user_env = os.environ.get("USER") or os.environ.get("USERNAME") or "Developer"
     return f"user:{user_env} (Local ADC)"
 
