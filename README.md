@@ -84,6 +84,17 @@ To configure and run the local `secret_agent` using ADK:
    adk run secret_agent
    ```
 
+### 6. Deploying the Agent to Vertex AI Agent Engine
+To deploy your verified `secret_agent` codebase to Vertex AI as a hosted Reasoning Engine:
+```bash
+adk deploy agent_engine \
+  --project=your-gcp-project-id \
+  --region=us-central1 \
+  --display_name="Secret Agent" \
+  --description="Retrieves a secret from Google Cloud Secret Manager." \
+  secret_agent
+```
+
 ---
 
 ## Technical Q&A: Agent Identity in Google Cloud's Agent Engine
