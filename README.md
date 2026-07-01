@@ -130,5 +130,5 @@ To deploy your agent code to the **pre-defined (empty shell) Agent Engine ID** y
 
 Below is an example of the dialog flow with the proof-of-concept Secret Manager Agent retrieving credentials using the pre-permissioned security context:
 
-![Example Dialog](./media/BYm9XrRN6MPfeHV%20example%20dialog.png)
+![Example Dialog](./media/sample_dialog.png)
 
