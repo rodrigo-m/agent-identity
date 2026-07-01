@@ -20,7 +20,8 @@ The notebook provides an executable, step-by-step hands-on guide that:
 3. **Creates a Secret in Google Secret Manager:** Creates a secure credential placeholder in Secret Manager.
 4. **Pre-Permissions the Identity:** Programmatically grants the allocated principal ID access (`roles/secretmanager.secretAccessor`) on the secret beforehand.
 5. **Verifies Active Policies:** Fetches and verifies active IAM policy bindings to ensure zero-downtime, secure-by-default access from the first moment of deployment.
-6. **(Optional) Verifies Live Deployments:** Searches for a live deployed Secret Agent, constructs its identity, and authorizes it.
+6. **Deploys Agent Code:** Deploys the ADK agent codebase to the pre-existing, pre-permissioned empty shell Agent Engine instance.
+7. **(Optional) Live Deployment Verification:** Searches for a live deployed Secret Agent, constructs its identity, and authorizes it.
 
 
 ---
@@ -49,10 +50,19 @@ The following APIs must be enabled in your target Google Cloud Project:
 * Vertex AI API (`aiplatform.googleapis.com`)
 
 ### 4. Python Environment
-The local python environment must be initialized and package dependencies installed from the root `requirements.txt`:
+To isolate project dependencies, set up a virtual environment (using `uv` as recommended in the notebook, or standard `venv` as a fallback):
+
+#### Option A: Using `uv` (Recommended)
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+# Initialize venv and install requirements via uv
+uv venv && source .venv/bin/activate && uv pip install --keyring-provider subprocess -r requirements.txt
+```
+
+#### Option B: Using Standard Python `venv`
+```bash
+# Create and activate a standard virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
@@ -71,10 +81,13 @@ To configure and run the local `secret_agent` using ADK:
    * `GOOGLE_CLOUD_PROJECT=your-gcp-project-id` (Your Google Cloud Project ID)
    * `GOOGLE_CLOUD_LOCATION=your-gcp-region` (The region for Vertex AI, e.g., `us-central1`)
 
-2. **Install ADK and Agent Dependencies:**
-   Ensure your Python virtual environment is activated, then install `google-adk` and the agent's requirements:
+2. **Install Agent Dependencies:**
+   Ensure your Python virtual environment is activated, then install the agent's requirements:
    ```bash
-   pip install google-adk
+   # Using uv (if using Option A)
+   uv pip install -r secret_agent/requirements.txt
+
+   # Using standard pip (if using Option B)
    pip install -r secret_agent/requirements.txt
    ```
 
@@ -84,17 +97,8 @@ To configure and run the local `secret_agent` using ADK:
    adk run secret_agent
    ```
 
-### 6. Deploying the Agent to Vertex AI Agent Engine
-#### Option A: Deploy to a New Instance
-To deploy your verified `secret_agent` codebase as a completely new Reasoning Engine instance:
-```bash
-adk deploy agent_engine \
-  --project=your-gcp-project-id \
-  --region=us-central1 \
-  --display_name="Secret Agent" \
-  --description="Retrieves a secret from Google Cloud Secret Manager." \
-  secret_agent
-```
+### 6. Deploying the Agent to the Agent Engine (Gemini Enterprise Agent Platform)
+#### Option A: Use the notebook agent_deployment.ipynb to create a new agent engine and deploy your agent code to it with the engine id created in that same notebook.
 
 #### Option B: Deploy to a Pre-defined Agent Engine ID (Pre-permissioned Empty Shell)
 To deploy your agent code to the **pre-defined (empty shell) Agent Engine ID** you created in Step 2:
