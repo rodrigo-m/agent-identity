@@ -5,8 +5,34 @@ from google.cloud import secretmanager
 
 def get_current_principal() -> str:
     """Helper to detect the current GCP principal/identity."""
-    # 1. Try metadata server (GCP managed environments)
     import urllib.request
+    import base64
+    import json
+
+    # 1. Try to fetch Identity Token from metadata server to detect Agent Identity (SPIFFE)
+    try:
+        # Request an identity token for the default service account with an arbitrary audience
+        url = "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=https://aiplatform.googleapis.com/"
+        req = urllib.request.Request(url)
+        req.add_header("Metadata-Flavor", "Google")
+        with urllib.request.urlopen(req, timeout=1) as response:
+            token = response.read().decode("utf-8").strip()
+            if token:
+                parts = token.split('.')
+                if len(parts) == 3:
+                    # Decode the JWT payload (the second part)
+                    payload_b64 = parts[1]
+                    # Add padding if required by base64
+                    payload_b64 += '=' * (4 - len(payload_b64) % 4)
+                    payload_json = base64.urlsafe_b64decode(payload_b64).decode('utf-8')
+                    payload = json.loads(payload_json)
+                    sub = payload.get("sub")
+                    if sub and sub.startswith("spiffe://"):
+                        return sub.replace("spiffe://", "principal://")
+    except Exception:
+        pass
+
+    # 2. Try metadata server service account email (standard GCP managed environments)
     try:
         req = urllib.request.Request(
             "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email"

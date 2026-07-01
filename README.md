@@ -1,6 +1,6 @@
 # Google Cloud Agent Identity Codelab (Enterprise 201)
 
-This project contains a Jupyter Notebook designed to accompany the 201 learning path, demonstrating the predictability, pre-creation, and pre-permissioning of cryptographically attested, SPIFFE-based Agent Identities on Google Cloud's Agent Engine.
+This project contains a Jupyter Notebook that shows how to provision an **Agent Identity** on **Google Cloud's Agent Engine** before deploying ADK agent code to the engine and to assign permissions **before** deploying the agent code.
 
 ## Notebook Overview
 
@@ -15,7 +15,7 @@ And deployed directly in your Google Cloud Project:
   * `gs://your-gcp-project-id-codelab/README.md`
 
 The notebook provides an executable, step-by-step hands-on guide that:
-1. **Resolves Project Metadata:** Programmatically fetches the numeric Project Number and Organization ID from the Google Cloud API.
+1. **Resolves Project Metadata:** Programmatically fetches the numeric Project Number from the Google Cloud API.
 2. **Creates an "Empty Shell" Agent Engine:** Programmatically provisions a lightweight, identity-only Agent Engine instance on Vertex AI without deploying any agent code to dynamically allocate the platform-assigned SPIFFE-based principal ID.
 3. **Creates a Secret in Google Secret Manager:** Creates a secure credential placeholder in Secret Manager.
 4. **Pre-Permissions the Identity:** Programmatically grants the allocated principal ID access (`roles/secretmanager.secretAccessor`) on the secret beforehand.
@@ -85,7 +85,8 @@ To configure and run the local `secret_agent` using ADK:
    ```
 
 ### 6. Deploying the Agent to Vertex AI Agent Engine
-To deploy your verified `secret_agent` codebase to Vertex AI as a hosted Reasoning Engine:
+#### Option A: Deploy to a New Instance
+To deploy your verified `secret_agent` codebase as a completely new Reasoning Engine instance:
 ```bash
 adk deploy agent_engine \
   --project=your-gcp-project-id \
@@ -95,7 +96,18 @@ adk deploy agent_engine \
   secret_agent
 ```
 
+#### Option B: Deploy to a Pre-defined Agent Engine ID (Pre-permissioned Empty Shell)
+To deploy your agent code to the **pre-defined (empty shell) Agent Engine ID** you created in Step 2:
+```bash
+# Pass the pre-defined agent ID as an argument
+./deploy_agent.sh <your-predefined-agent-id>
+
+# Alternatively, run without arguments and the script will list existing IDs to choose from
+./deploy_agent.sh
+```
+
 ---
+
 
 ## Technical Q&A: Agent Identity in Google Cloud's Agent Engine
 

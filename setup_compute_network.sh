@@ -3,6 +3,7 @@
 # Google Cloud VPC and Compute Provisioning Script
 # This script enables Compute Engine, creates a Custom VPC Network, and provisions
 # a Subnet with the CIDR range 10.33.1.0/24 (covering 10.33.1.1/24 subnet).
+# Use this script if you are running the notebook in Colab Enterprise (cloud)
 # ==============================================================================
 
 # Exit immediately if any command fails
